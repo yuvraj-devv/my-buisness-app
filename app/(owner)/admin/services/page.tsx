@@ -26,6 +26,49 @@ type Service = {
   is_active: boolean;
 };
 
+function getServiceImage(name: string, category: string) {
+  const n = name.toLowerCase();
+  const cat = category.toLowerCase();
+
+  // Food / Restaurant
+  if (n.includes("burger") || cat.includes("burger")) {
+    return "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&auto=format&fit=crop&q=80";
+  }
+  if (n.includes("pizza") || cat.includes("pizza")) {
+    return "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&auto=format&fit=crop&q=80";
+  }
+  if (n.includes("sandwich") || cat.includes("sandwich")) {
+    return "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=400&auto=format&fit=crop&q=80";
+  }
+  if (n.includes("coffee") || n.includes("tea") || n.includes("cafe") || cat.includes("beverage")) {
+    return "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=400&auto=format&fit=crop&q=80";
+  }
+  if (n.includes("pasta") || cat.includes("pasta")) {
+    return "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=400&auto=format&fit=crop&q=80";
+  }
+  if (n.includes("fries") || cat.includes("fries") || n.includes("potato")) {
+    return "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400&auto=format&fit=crop&q=80";
+  }
+
+  // Healthcare / Medical
+  if (cat.includes("health") || cat.includes("medical") || n.includes("checkup") || n.includes("consult")) {
+    return "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&auto=format&fit=crop&q=80";
+  }
+
+  // Gym / Fitness
+  if (cat.includes("fitness") || cat.includes("gym") || n.includes("train") || n.includes("workout")) {
+    return "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=400&auto=format&fit=crop&q=80";
+  }
+
+  // Salon / Beauty
+  if (cat.includes("salon") || cat.includes("spa") || n.includes("hair") || n.includes("massage")) {
+    return "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=400&auto=format&fit=crop&q=80";
+  }
+
+  // Default clean placeholder
+  return "https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400&auto=format&fit=crop&q=80";
+}
+
 export default function ServicesPage() {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
@@ -209,53 +252,67 @@ export default function ServicesPage() {
       </AnimatePresence>
 
       {/* Services List */}
-      <div className="space-y-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <AnimatePresence>
           {services.length > 0 ? (
             services.map((service, i) => (
               <motion.div
                 key={service.id}
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, x: -20 }}
+                exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ delay: i * 0.04 }}
-                className="flex items-center justify-between rounded-xl border border-zinc-200 bg-white p-4 hover:shadow-sm transition-all group shadow-xs"
+                className="relative flex gap-4 rounded-xl border border-zinc-200 bg-white p-3 hover:shadow-md hover:border-zinc-300 transition-all duration-200 group"
               >
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-zinc-100 flex items-center justify-center">
-                    <Package className="w-5 h-5 text-zinc-500" />
-                  </div>
+                {/* Picture */}
+                <img
+                  src={getServiceImage(service.name, service.category)}
+                  alt={service.name}
+                  className="w-20 h-20 rounded-lg object-cover flex-shrink-0 bg-zinc-50 border border-zinc-100"
+                />
+
+                {/* Info Content */}
+                <div className="flex-1 min-w-0 flex flex-col justify-between">
                   <div>
-                    <h3 className="text-sm font-semibold text-zinc-900">
-                      {service.name}
-                    </h3>
-                    <p className="text-xs text-zinc-400 mt-0.5">
-                      {service.description || "No description"}
-                    </p>
-                    <div className="flex items-center gap-3 mt-1.5">
-                      <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-600">
+                    <div className="flex items-start justify-between gap-2">
+                      <h3 className="text-sm font-bold text-zinc-900 truncate">
+                        {service.name}
+                      </h3>
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-650 flex-shrink-0 capitalize border border-zinc-200/50">
                         {service.category}
                       </span>
-                      <span className="flex items-center gap-1 text-xs text-zinc-500">
+                    </div>
+                    <p className="text-xs text-zinc-400 mt-1 line-clamp-2 leading-relaxed">
+                      {service.description || "No description available."}
+                    </p>
+                  </div>
+
+                  {/* Footer: Price + Duration */}
+                  <div className="flex items-center justify-between mt-2 pt-2 border-t border-zinc-100/60">
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs font-bold text-zinc-800">
                         ₹{service.price?.toFixed(2)}
                       </span>
-                      <span className="flex items-center gap-1 text-xs text-zinc-500">
-                        <Clock className="w-3 h-3" />
-                        {service.duration_minutes}min
+                      <span className="flex items-center gap-1 text-[11px] font-medium text-zinc-400">
+                        <Clock className="w-3.5 h-3.5" />
+                        {service.duration_minutes}m
                       </span>
                     </div>
+
+                    {/* Delete Button (visible on hover) */}
+                    <button
+                      onClick={() => deleteService(service.id)}
+                      className="opacity-0 group-hover:opacity-100 text-zinc-400 hover:text-red-500 transition-all p-1 hover:bg-red-50 rounded-lg cursor-pointer flex items-center justify-center border-0"
+                      title="Delete offering"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 </div>
-                <button
-                  onClick={() => deleteService(service.id)}
-                  className="opacity-0 group-hover:opacity-100 text-zinc-300 hover:text-red-500 transition-all p-2"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
               </motion.div>
             ))
           ) : (
-            <div className="text-center py-16 border border-dashed border-zinc-200 rounded-xl bg-zinc-50">
+            <div className="text-center py-16 border border-dashed border-zinc-200 rounded-xl bg-zinc-50 col-span-full">
               <Package className="w-8 h-8 text-zinc-300 mx-auto mb-3" />
               <p className="text-sm text-zinc-400">
                 No {industryLabel.toLowerCase()} yet. Add your first one above.

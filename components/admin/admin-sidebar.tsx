@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { signOut } from "@/lib/auth-actions";
+import { UserProfileMenu } from "@/components/user-profile-menu";
 import {
   LayoutDashboard,
   CalendarCheck,
@@ -13,7 +13,6 @@ import {
   ChevronRight,
   Activity,
   Package,
-  LogOut,
   Receipt,
 } from "lucide-react";
 
@@ -28,9 +27,13 @@ const navItems = [
 export function AdminSidebar({
   logoUrl,
   businessName,
+  user,
+  profile,
 }: {
   logoUrl?: string | null;
   businessName?: string | null;
+  user: any;
+  profile: any;
 }) {
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
@@ -127,28 +130,16 @@ export function AdminSidebar({
 
       {/* Sign Out + Status */}
       <div className="px-2 pb-3 space-y-2">
-        <form action={signOut}>
-          <button
-            type="submit"
-            className={`flex items-center gap-3 px-3 py-2 rounded-lg text-zinc-400 hover:text-red-500 hover:bg-red-50 transition-all w-full text-sm ${
-              collapsed ? "justify-center" : ""
-            }`}
-          >
-            <LogOut className="w-[18px] h-[18px] flex-shrink-0" />
-            <AnimatePresence>
-              {!collapsed && (
-                <motion.span
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="font-medium whitespace-nowrap"
-                >
-                  Sign Out
-                </motion.span>
-              )}
-            </AnimatePresence>
-          </button>
-        </form>
+        {user ? (
+          <UserProfileMenu
+            variant="sidebar"
+            collapsed={collapsed}
+            user={user}
+            profile={profile}
+          />
+        ) : (
+          <div className={`h-11 rounded-xl bg-zinc-100 animate-pulse ${collapsed ? "w-11 mx-auto" : "w-full"}`} />
+        )}
 
         <div className={`flex items-center gap-2 px-3 py-2 rounded-lg bg-zinc-50 ${collapsed ? "justify-center" : ""}`}>
           <Activity className="w-3.5 h-3.5 text-emerald-500 animate-pulse" />

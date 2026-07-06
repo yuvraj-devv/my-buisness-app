@@ -16,9 +16,20 @@ export default async function AdminLayout({
     .eq("owner_id", user?.id)
     .single();
 
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user?.id)
+    .single();
+
   return (
     <div className="flex h-screen bg-zinc-50 overflow-hidden">
-      <AdminSidebar logoUrl={business?.logo_url} businessName={business?.name} />
+      <AdminSidebar
+        logoUrl={business?.logo_url}
+        businessName={business?.name}
+        user={user}
+        profile={profile}
+      />
       <main className="flex-1 overflow-y-auto scrollbar-thin">
         <div className="p-6 lg:p-8">{children}</div>
       </main>

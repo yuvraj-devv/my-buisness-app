@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { supabaseClient } from "@/lib/supabase-client";
 import { signOut } from "@/lib/auth-actions";
+import { UserProfileMenu } from "@/components/user-profile-menu";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -73,6 +74,8 @@ export default function ExplorePage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState("All");
+  const [user, setUser] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(null);
 
   useEffect(() => {
     async function load() {
@@ -83,6 +86,18 @@ export default function ExplorePage() {
 
       setBusinesses(data || []);
       setLoading(false);
+
+      // Load authenticated user & profile details
+      const { data: { user: authUser } } = await supabaseClient.auth.getUser();
+      if (authUser) {
+        setUser(authUser);
+        const { data: prof } = await supabaseClient
+          .from("profiles")
+          .select("*")
+          .eq("id", authUser.id)
+          .single();
+        setProfile(prof);
+      }
     }
     load();
   }, []);
@@ -110,16 +125,11 @@ export default function ExplorePage() {
               BizPlatform
             </span>
           </div>
-          <form action={signOut}>
-            <Button
-              type="submit"
-              variant="outline"
-              className="border-zinc-200 text-zinc-500 hover:text-zinc-800 text-xs h-8 hover:bg-zinc-50"
-            >
-              <LogOut className="w-3.5 h-3.5 mr-1.5" />
-              Sign Out
-            </Button>
-          </form>
+          {user ? (
+            <UserProfileMenu variant="header" user={user} profile={profile} />
+          ) : (
+            <div className="w-24 h-8 bg-zinc-100 rounded-full animate-pulse" />
+          )}
         </div>
       </nav>
 
