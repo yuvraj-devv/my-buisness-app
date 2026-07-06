@@ -42,7 +42,23 @@ function slotToBookingTime(slot: string, date: string) {
   return bookingDate.toISOString();
 }
 
+function generateRestaurantSlots(): string[] {
+  return [
+    "09:00 AM",
+    "09:30 AM",
+    "10:00 AM",
+    "10:30 AM",
+    "11:00 AM",
+    "08:00 PM",
+    "08:30 PM",
+    "09:00 PM",
+    "09:30 PM",
+    "10:00 PM"
+  ];
+}
+
 const slots = generateTimeSlots();
+const restaurantSlots = generateRestaurantSlots();
 
 export function BookingForm({ businessId, isHealthcare, isRestaurant, industryType }: BookingFormProps) {
   const [step, setStep] = useState(0);
@@ -57,7 +73,9 @@ export function BookingForm({ businessId, isHealthcare, isRestaurant, industryTy
     }
     return defaultDate.toISOString().split("T")[0];
   });
-  const [selectedSlot, setSelectedSlot] = useState(slots[0]);
+  const [selectedSlot, setSelectedSlot] = useState(() => {
+    return isRestaurant ? restaurantSlots[0] : slots[0];
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
@@ -104,15 +122,15 @@ export function BookingForm({ businessId, isHealthcare, isRestaurant, industryTy
 
   // Automatically update active slot selection if selectedDate changes and slot is booked
   useEffect(() => {
-    if (isRestaurant) return;
+    const activeSlots = isRestaurant ? restaurantSlots : slots;
     const isCurrentSlotBooked = isSlotBooked(selectedSlot);
     if (isCurrentSlotBooked) {
-      const available = slots.find((s) => !isSlotBooked(s));
+      const available = activeSlots.find((s) => !isSlotBooked(s));
       if (available) {
         setSelectedSlot(available);
       }
     }
-  }, [selectedDate, activeBookings, isRestaurant]);
+  }, [selectedDate, activeBookings, isRestaurant, selectedSlot]);
 
   const config = getIndustryConfig(industryType || (isHealthcare ? "healthcare" : isRestaurant ? "restaurant" : "service"));
   const accentBg = config.accentBg || "bg-zinc-900";
@@ -324,7 +342,7 @@ export function BookingForm({ businessId, isHealthcare, isRestaurant, industryTy
         Choose Time
       </p>
       <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto scrollbar-thin pr-1">
-        {slots.map((time) => {
+        {(isRestaurant ? restaurantSlots : slots).map((time) => {
           const booked = isSlotBooked(time);
           return (
             <button

@@ -55,7 +55,23 @@ function slotToBookingTime(slot: string, date: string) {
   return bookingDate.toISOString();
 }
 
+function generateRestaurantSlots(): string[] {
+  return [
+    "09:00 AM",
+    "09:30 AM",
+    "10:00 AM",
+    "10:30 AM",
+    "11:00 AM",
+    "08:00 PM",
+    "08:30 PM",
+    "09:00 PM",
+    "09:30 PM",
+    "10:00 PM"
+  ];
+}
+
 const timeSlots = generateTimeSlots();
+const restaurantSlots = generateRestaurantSlots();
 
 type Booking = {
   id: string;
@@ -1074,7 +1090,7 @@ function ProfileDashboardContent() {
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-zinc-500 uppercase">Select Time Slot</label>
                   <div className="grid grid-cols-3 gap-1.5 max-h-40 overflow-y-auto scrollbar-thin pr-1 border border-zinc-150 p-2 rounded-xl">
-                    {timeSlots.map((time) => {
+                    {(rescheduleBooking?.businesses?.industry_type === "restaurant" || rescheduleBooking?.businesses?.industry_type === "cafe" ? restaurantSlots : timeSlots).map((time) => {
                       const isBusy = busySlots.includes(time);
                       const isSelected = rescheduleSlot === time;
                       return (
