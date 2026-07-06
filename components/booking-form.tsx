@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabaseClient } from "@/lib/supabase-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { CheckCircle, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { CheckCircle, ChevronLeft, ChevronRight, Loader2, ChevronDown } from "lucide-react";
 import { getIndustryConfig } from "@/lib/industry-config";
 
 type BookingFormProps = {
@@ -49,6 +49,7 @@ export function BookingForm({ businessId, isHealthcare, isRestaurant, industryTy
   const [customerName, setCustomerName] = useState("");
   const [customerContact, setCustomerContact] = useState("");
   const [selectedTable, setSelectedTable] = useState("");
+  const [tableDropdownOpen, setTableDropdownOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(() => {
     const defaultDate = new Date();
     if (!isRestaurant) {
@@ -60,6 +61,58 @@ export function BookingForm({ businessId, isHealthcare, isRestaurant, industryTy
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
+  const [activeBookings, setActiveBookings] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!businessId) return;
+
+    async function loadActiveBookings() {
+      const { data } = await supabaseClient
+        .from("bookings")
+        .select("customer_contact, booking_time")
+        .eq("business_id", businessId)
+        .eq("status", "confirmed");
+
+      setActiveBookings(data || []);
+    }
+
+    loadActiveBookings();
+    
+    // Poll every 8 seconds to ensure near real-time updates
+    const interval = setInterval(loadActiveBookings, 8000);
+    return () => clearInterval(interval);
+  }, [businessId]);
+
+  const isTableBooked = (tableNum: number) => {
+    return activeBookings.some((b) => {
+      const match = b.customer_contact?.match(/\|\s*Table\s*(\d+)/);
+      return match && Number(match[1]) === tableNum;
+    });
+  };
+
+  const isSlotBooked = (slotTime: string) => {
+    try {
+      const targetTimeISO = slotToBookingTime(slotTime, selectedDate);
+      const targetTimeMs = new Date(targetTimeISO).getTime();
+      return activeBookings.some((b) => {
+        return new Date(b.booking_time).getTime() === targetTimeMs;
+      });
+    } catch (e) {
+      return false;
+    }
+  };
+
+  // Automatically update active slot selection if selectedDate changes and slot is booked
+  useEffect(() => {
+    if (isRestaurant) return;
+    const isCurrentSlotBooked = isSlotBooked(selectedSlot);
+    if (isCurrentSlotBooked) {
+      const available = slots.find((s) => !isSlotBooked(s));
+      if (available) {
+        setSelectedSlot(available);
+      }
+    }
+  }, [selectedDate, activeBookings, isRestaurant]);
 
   const config = getIndustryConfig(industryType || (isHealthcare ? "healthcare" : isRestaurant ? "restaurant" : "service"));
   const accentBg = config.accentBg || "bg-zinc-900";
@@ -69,6 +122,21 @@ export function BookingForm({ businessId, isHealthcare, isRestaurant, industryTy
   async function handleSubmit() {
     setError("");
     setIsSubmitting(true);
+
+    // Concurrency check before sending insert query
+    if (isRestaurant && selectedTable) {
+      if (isTableBooked(Number(selectedTable))) {
+        setError(`Table ${selectedTable} has just been reserved by another customer.`);
+        setIsSubmitting(false);
+        return;
+      }
+    } else if (!isRestaurant) {
+      if (isSlotBooked(selectedSlot)) {
+        setError(`The ${selectedSlot} slot has just been booked by another customer.`);
+        setIsSubmitting(false);
+        return;
+      }
+    }
 
     const contactString = isRestaurant && selectedTable
       ? `${customerContact.trim()} | Table ${selectedTable}`
@@ -154,19 +222,72 @@ export function BookingForm({ businessId, isHealthcare, isRestaurant, industryTy
           className="bg-white border-zinc-300 text-zinc-900 placeholder:text-zinc-400 dark:bg-white dark:text-zinc-900 dark:border-zinc-300 dark:placeholder:text-zinc-400 focus:bg-white focus:text-zinc-900 focus:outline-none h-9 text-sm"
         />
         {isRestaurant && (
-          <select
-            value={selectedTable}
-            onChange={(e) => setSelectedTable(e.target.value)}
-            className="flex h-9 w-full rounded-md border border-zinc-300 bg-white px-3 py-1 text-sm text-zinc-900 focus:outline-none focus:border-zinc-400 cursor-pointer dark:bg-white dark:text-zinc-900 dark:border-zinc-300"
-            required
-          >
-            <option value="" disabled>Select Table Number (sitting at)</option>
-            {Array.from({ length: 21 }, (_, index) => 100 + index).map((num) => (
-              <option key={num} value={num}>
-                Table {num}
-              </option>
-            ))}
-          </select>
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setTableDropdownOpen(!tableDropdownOpen)}
+              className="flex h-9 w-full items-center justify-between rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-sm text-zinc-900 focus:outline-none focus:border-zinc-400 cursor-pointer dark:bg-white dark:text-zinc-900 dark:border-zinc-300 select-none"
+            >
+              <span className="truncate">
+                {selectedTable ? `Table ${selectedTable}` : "Select Table Number (sitting at)"}
+              </span>
+              <ChevronDown className={`w-4 h-4 text-zinc-400 transition-transform duration-200 flex-shrink-0 ${tableDropdownOpen ? "rotate-180" : ""}`} />
+            </button>
+
+            <AnimatePresence>
+              {tableDropdownOpen && (
+                <>
+                  {/* Backdrop */}
+                  <div 
+                    className="fixed inset-0 z-30 bg-transparent" 
+                    onClick={() => setTableDropdownOpen(false)} 
+                  />
+                  
+                  <motion.div
+                    initial={{ opacity: 0, y: 4, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 4, scale: 0.98 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute left-0 right-0 z-40 mt-1 max-h-56 overflow-y-auto scrollbar-thin rounded-xl border border-zinc-200 bg-white p-1.5 shadow-lg"
+                  >
+                    {Array.from({ length: 21 }, (_, index) => 100 + index).map((num) => {
+                      const booked = isTableBooked(num);
+                      const isSelected = selectedTable === String(num);
+                      return (
+                        <button
+                          key={num}
+                          type="button"
+                          disabled={booked}
+                          onClick={() => {
+                            setSelectedTable(String(num));
+                            setTableDropdownOpen(false);
+                          }}
+                          className={`flex w-full items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition-all text-left border-0 cursor-pointer select-none
+                            ${isSelected 
+                              ? `${accentBg} text-white` 
+                              : booked 
+                              ? "text-zinc-300 bg-zinc-50 cursor-not-allowed" 
+                              : "text-zinc-700 hover:bg-zinc-50 hover:text-zinc-900"
+                            }
+                          `}
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? "bg-white" : booked ? "bg-zinc-200" : "bg-emerald-500"}`} />
+                            <span>Table {num}</span>
+                          </div>
+                          {booked && (
+                            <span className="text-[9px] font-bold text-zinc-400 bg-zinc-100 px-2 py-0.5 rounded-full">
+                              Occupied
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </motion.div>
+                </>
+              )}
+            </AnimatePresence>
+          </div>
         )}
       </div>
     </motion.div>,
@@ -203,19 +324,26 @@ export function BookingForm({ businessId, isHealthcare, isRestaurant, industryTy
         Choose Time
       </p>
       <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto scrollbar-thin pr-1">
-        {slots.map((time) => (
-          <button
-            key={time}
-            onClick={() => setSelectedSlot(time)}
-            className={`px-2 py-1.5 rounded-lg text-[11px] font-medium border transition-all cursor-pointer ${
-              selectedSlot === time
-                ? `${accentBg} text-white border-transparent`
-                : "border-zinc-200 bg-white text-zinc-500 hover:text-zinc-950 hover:border-zinc-350"
-            }`}
-          >
-            {time}
-          </button>
-        ))}
+        {slots.map((time) => {
+          const booked = isSlotBooked(time);
+          return (
+            <button
+              key={time}
+              type="button"
+              disabled={booked}
+              onClick={() => setSelectedSlot(time)}
+              className={`px-2 py-1.5 rounded-lg text-[11px] font-medium border transition-all cursor-pointer ${
+                selectedSlot === time
+                  ? `${accentBg} text-white border-transparent`
+                  : booked
+                  ? "border-zinc-100 bg-zinc-100 text-zinc-350 cursor-not-allowed opacity-50"
+                  : "border-zinc-200 bg-white text-zinc-500 hover:text-zinc-950 hover:border-zinc-350"
+              }`}
+            >
+              {time} {booked ? " (Full)" : ""}
+            </button>
+          );
+        })}
       </div>
     </motion.div>,
   ];
