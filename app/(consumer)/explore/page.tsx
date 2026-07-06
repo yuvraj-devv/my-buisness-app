@@ -91,6 +91,13 @@ export default function ExplorePage() {
       const { data: { user: authUser } } = await supabaseClient.auth.getUser();
       if (authUser) {
         setUser(authUser);
+
+        // Load default industry filter from preferences if set
+        const pref = authUser.user_metadata?.preferences || {};
+        if (pref.default_industry && pref.default_industry !== "All") {
+          setActiveFilter(pref.default_industry);
+        }
+
         const { data: prof } = await supabaseClient
           .from("profiles")
           .select("*")

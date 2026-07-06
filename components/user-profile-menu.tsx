@@ -65,10 +65,10 @@ export function UserProfileMenu({ user, profile, variant, collapsed = false }: U
         { label: "Help & Support", icon: HelpCircle, href: "#" },
       ]
     : [
-        { label: "Profile Details", icon: User, href: "#" },
-        { label: "My Bookings", icon: Calendar, href: "#" },
-        { label: "Preferences", icon: Settings, href: "#" },
-        { label: "Help & Support", icon: HelpCircle, href: "#" },
+        { label: "Profile Details", icon: User, href: "/profile?tab=details" },
+        { label: "My Bookings", icon: Calendar, href: "/profile?tab=bookings" },
+        { label: "Preferences", icon: Settings, href: "/profile?tab=preferences" },
+        { label: "Help & Support", icon: HelpCircle, href: "/profile?tab=support" },
       ];
 
   if (variant === "sidebar") {
