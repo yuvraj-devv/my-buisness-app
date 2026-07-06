@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { supabaseClient } from "@/lib/supabase-client";
 import { signOut } from "@/lib/auth-actions";
 import { UserProfileMenu } from "@/components/user-profile-menu";
@@ -76,6 +76,11 @@ export default function ExplorePage() {
   const [activeFilter, setActiveFilter] = useState("All");
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
+  const [detectedLocation, setDetectedLocation] = useState("Hyderabad");
+  const [tempLocation, setTempLocation] = useState("");
+  const [isEditingLocation, setIsEditingLocation] = useState(false);
+  const [filterByLocation, setFilterByLocation] = useState(true);
+  const [newBizNotification, setNewBizNotification] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -87,6 +92,19 @@ export default function ExplorePage() {
       setBusinesses(data || []);
       setLoading(false);
 
+      // Detect location via free IP API for everyone as default
+      let detectedCity = "Hyderabad";
+      try {
+        const res = await fetch("https://ipapi.co/json/");
+        const ipData = await res.json();
+        if (ipData.city) {
+          detectedCity = ipData.city;
+          setDetectedLocation(ipData.city);
+        }
+      } catch (e) {
+        console.error("Geocoding failed", e);
+      }
+
       // Load authenticated user & profile details
       const { data: { user: authUser } } = await supabaseClient.auth.getUser();
       if (authUser) {
@@ -96,6 +114,11 @@ export default function ExplorePage() {
         const pref = authUser.user_metadata?.preferences || {};
         if (pref.default_industry && pref.default_industry !== "All") {
           setActiveFilter(pref.default_industry);
+        }
+
+        // Override with user's specific region preference if configured
+        if (pref.region) {
+          setDetectedLocation(pref.region);
         }
 
         const { data: prof } = await supabaseClient
@@ -109,14 +132,52 @@ export default function ExplorePage() {
     load();
   }, []);
 
+  // Set up realtime subscription to listen for new business registrations
+  useEffect(() => {
+    const channel = supabaseClient
+      .channel("realtime-businesses")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "businesses" },
+        (payload) => {
+          const newBiz = payload.new as Business;
+          
+          // Add to state if not already present
+          setBusinesses((prev) => {
+            if (prev.some((b) => b.id === newBiz.id)) return prev;
+            return [newBiz, ...prev];
+          });
+
+          // Show a temporary visual banner notification
+          setNewBizNotification(`✨ A new business "${newBiz.name}" has just registered!`);
+          setTimeout(() => {
+            setNewBizNotification(null);
+          }, 6000);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabaseClient.removeChannel(channel);
+    };
+  }, []);
+
   const filtered = businesses.filter((b) => {
     const matchesSearch =
       b.name.toLowerCase().includes(search.toLowerCase()) ||
-      b.description?.toLowerCase().includes(search.toLowerCase());
+      b.description?.toLowerCase().includes(search.toLowerCase()) ||
+      b.address?.toLowerCase().includes(search.toLowerCase());
+      
     const matchesFilter =
       activeFilter === "All" ||
       b.industry_type?.toLowerCase().replace("_", " ") === activeFilter.toLowerCase();
-    return matchesSearch && matchesFilter;
+      
+    const matchesLocation =
+      !filterByLocation ||
+      !detectedLocation ||
+      b.address?.toLowerCase().includes(detectedLocation.toLowerCase());
+      
+    return matchesSearch && matchesFilter && matchesLocation;
   });
 
   return (
@@ -141,6 +202,27 @@ export default function ExplorePage() {
       </nav>
 
       <main className="max-w-6xl mx-auto px-6 py-10 space-y-8">
+        {/* Real-time Registration Notification Banner */}
+        <AnimatePresence>
+          {newBizNotification && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="bg-emerald-600 text-white px-4 py-2.5 rounded-xl text-xs font-semibold shadow-md flex items-center justify-between"
+            >
+              <span>{newBizNotification}</span>
+              <button
+                type="button"
+                onClick={() => setNewBizNotification(null)}
+                className="text-white/80 hover:text-white font-bold ml-4 cursor-pointer border-0 bg-transparent text-[10px] uppercase"
+              >
+                Dismiss
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Hero */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -165,14 +247,65 @@ export default function ExplorePage() {
           transition={{ delay: 0.1 }}
           className="space-y-4"
         >
-          <div className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
-            <Input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search businesses..."
-              className="pl-10 bg-white border-zinc-200 text-zinc-900 placeholder:text-zinc-400"
-            />
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
+            <div className="relative max-w-md flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+              <Input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search businesses..."
+                className="pl-10 bg-white border-zinc-200 text-zinc-900 placeholder:text-zinc-400"
+              />
+            </div>
+
+            {/* Geolocation selector */}
+            <div className="flex items-center gap-2 self-start sm:self-auto bg-zinc-50 border border-zinc-200 px-3 py-1.5 rounded-full shadow-2xs select-none">
+              <MapPin className="w-3.5 h-3.5 text-zinc-500" />
+              <span className="text-[11px] font-semibold text-zinc-650">Location:</span>
+
+              {isEditingLocation ? (
+                <input
+                  type="text"
+                  value={tempLocation}
+                  onChange={(e) => setTempLocation(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      setDetectedLocation(tempLocation);
+                      setIsEditingLocation(false);
+                    }
+                  }}
+                  onBlur={() => setIsEditingLocation(false)}
+                  className="bg-white border border-zinc-300 rounded px-1.5 py-0.5 text-[11px] w-24 text-zinc-900 font-bold focus:outline-none focus:border-zinc-500"
+                  autoFocus
+                />
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTempLocation(detectedLocation);
+                    setIsEditingLocation(true);
+                  }}
+                  className="text-[11px] font-bold text-zinc-900 hover:underline border-0 bg-transparent cursor-pointer p-0"
+                >
+                  {detectedLocation || "Detecting..."}
+                </button>
+              )}
+
+              <div className="h-3 w-px bg-zinc-250 mx-1" />
+
+              <button
+                type="button"
+                onClick={() => setFilterByLocation(!filterByLocation)}
+                className={`text-[10px] font-bold px-2 py-0.5 rounded-full cursor-pointer border-0 transition-colors
+                  ${filterByLocation 
+                    ? "bg-zinc-900 text-white" 
+                    : "bg-zinc-200 text-zinc-600 hover:bg-zinc-300/40"
+                  }
+                `}
+              >
+                {filterByLocation ? "Nearby Only" : "Show All"}
+              </button>
+            </div>
           </div>
 
           <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin">
