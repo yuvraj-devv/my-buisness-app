@@ -428,7 +428,7 @@ export default function ExplorePage() {
                       </h3>
 
                       {/* Description */}
-                      <p className="text-xs text-zinc-400 leading-relaxed line-clamp-2 mb-4">
+                      <p className="text-xs text-zinc-500 leading-relaxed line-clamp-2 mb-4 font-medium">
                         {biz.description || "No description available."}
                       </p>
 
@@ -436,7 +436,7 @@ export default function ExplorePage() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           {biz.address && (
-                            <span className="flex items-center gap-1 text-[11px] text-zinc-400">
+                            <span className="flex items-center gap-1 text-[11px] text-zinc-500 font-semibold">
                               <MapPin className="w-3 h-3" />
                               {biz.address.split(",")[0]}
                             </span>
