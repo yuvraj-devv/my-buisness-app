@@ -145,19 +145,19 @@ export function BookingForm({ businessId, isHealthcare, isRestaurant, industryTy
           value={customerName}
           onChange={(e) => setCustomerName(e.target.value)}
           placeholder="Full Name"
-          className="bg-white border-zinc-200 text-zinc-900 placeholder:text-zinc-400"
+          className="bg-white border-zinc-300 text-zinc-900 placeholder:text-zinc-400 dark:bg-white dark:text-zinc-900 dark:border-zinc-300 dark:placeholder:text-zinc-400 focus:bg-white focus:text-zinc-900 focus:outline-none h-9 text-sm"
         />
         <Input
           value={customerContact}
           onChange={(e) => setCustomerContact(e.target.value)}
           placeholder="Phone Number"
-          className="bg-white border-zinc-200 text-zinc-900 placeholder:text-zinc-400"
+          className="bg-white border-zinc-300 text-zinc-900 placeholder:text-zinc-400 dark:bg-white dark:text-zinc-900 dark:border-zinc-300 dark:placeholder:text-zinc-400 focus:bg-white focus:text-zinc-900 focus:outline-none h-9 text-sm"
         />
         {isRestaurant && (
           <select
             value={selectedTable}
             onChange={(e) => setSelectedTable(e.target.value)}
-            className="flex h-9 w-full rounded-md border border-zinc-200 bg-white px-3 py-1 text-sm text-zinc-850 focus:outline-none focus:border-zinc-400 cursor-pointer"
+            className="flex h-9 w-full rounded-md border border-zinc-300 bg-white px-3 py-1 text-sm text-zinc-900 focus:outline-none focus:border-zinc-400 cursor-pointer dark:bg-white dark:text-zinc-900 dark:border-zinc-300"
             required
           >
             <option value="" disabled>Select Table Number (sitting at)</option>
@@ -187,7 +187,7 @@ export function BookingForm({ businessId, isHealthcare, isRestaurant, industryTy
         value={selectedDate}
         onChange={(e) => setSelectedDate(e.target.value)}
         min={new Date().toISOString().split("T")[0]}
-        className="bg-white border-zinc-200 text-zinc-900 cursor-pointer"
+        className="bg-white border-zinc-300 text-zinc-900 cursor-pointer dark:bg-white dark:text-zinc-900 dark:border-zinc-300 h-9 text-sm"
       />
     </motion.div>,
 

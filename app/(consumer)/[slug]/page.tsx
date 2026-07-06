@@ -33,58 +33,58 @@ type ThemeConfig = {
 
 const themes: Record<string, ThemeConfig> = {
   healthcare: {
-    bgGradient: "bg-gradient-to-tr from-emerald-50/20 via-white to-teal-50/10",
-    heroBg: "bg-gradient-to-br from-emerald-50/40 via-teal-50/20 to-white border-b border-emerald-100/50",
-    cardBg: "bg-white/80 backdrop-blur-md",
-    borderClass: "border-emerald-100/70 hover:border-emerald-300 hover:shadow-xs",
-    badgeClass: "bg-emerald-50 text-emerald-700 border border-emerald-200/50",
-    buttonClass: "bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-100",
-    containerClass: "text-zinc-950"
+    bgGradient: "bg-zinc-50 dark:bg-zinc-50",
+    heroBg: "bg-white border-b border-zinc-200/65 dark:bg-white dark:border-zinc-200/65",
+    cardBg: "bg-white dark:bg-white",
+    borderClass: "border-zinc-200/80 hover:border-emerald-300 hover:shadow-xs dark:border-zinc-200/80",
+    badgeClass: "bg-emerald-50 text-emerald-700 border border-emerald-200/50 dark:bg-emerald-50 dark:text-emerald-700",
+    buttonClass: "bg-emerald-600 hover:bg-emerald-700 text-white dark:bg-emerald-600 dark:hover:bg-emerald-700",
+    containerClass: "text-zinc-900 bg-zinc-50 dark:text-zinc-900 dark:bg-zinc-50"
   },
   restaurant: {
-    bgGradient: "bg-gradient-to-tr from-amber-50/20 via-white to-orange-50/10",
-    heroBg: "bg-gradient-to-br from-amber-50/30 via-orange-50/20 to-white border-b border-amber-100/50",
-    cardBg: "bg-white/80 backdrop-blur-md",
-    borderClass: "border-amber-100 hover:border-amber-250 hover:shadow-xs",
-    badgeClass: "bg-amber-50 text-amber-800 border border-amber-200/50",
-    buttonClass: "bg-amber-600 hover:bg-amber-700 text-white shadow-amber-100",
-    containerClass: "text-zinc-950"
+    bgGradient: "bg-zinc-50 dark:bg-zinc-50",
+    heroBg: "bg-white border-b border-zinc-200/65 dark:bg-white dark:border-zinc-200/65",
+    cardBg: "bg-white dark:bg-white",
+    borderClass: "border-zinc-200/80 hover:border-amber-300 hover:shadow-xs dark:border-zinc-200/80",
+    badgeClass: "bg-amber-50 text-amber-800 border border-amber-200/50 dark:bg-amber-50 dark:text-amber-800",
+    buttonClass: "bg-amber-600 hover:bg-amber-700 text-white dark:bg-amber-600 dark:hover:bg-amber-700",
+    containerClass: "text-zinc-900 bg-zinc-50 dark:text-zinc-900 dark:bg-zinc-50"
   },
   cafe: {
-    bgGradient: "bg-gradient-to-tr from-orange-50/25 via-white to-amber-50/10",
-    heroBg: "bg-gradient-to-br from-orange-50/30 via-amber-50/20 to-white border-b border-orange-100/50",
-    cardBg: "bg-white/80 backdrop-blur-md",
-    borderClass: "border-orange-100 hover:border-orange-250 hover:shadow-xs",
-    badgeClass: "bg-orange-50 text-orange-850 border border-orange-200/50",
-    buttonClass: "bg-orange-600 hover:bg-orange-700 text-white shadow-orange-100",
-    containerClass: "text-zinc-950"
+    bgGradient: "bg-zinc-50 dark:bg-zinc-50",
+    heroBg: "bg-white border-b border-zinc-200/65 dark:bg-white dark:border-zinc-200/65",
+    cardBg: "bg-white dark:bg-white",
+    borderClass: "border-zinc-200/80 hover:border-orange-300 hover:shadow-xs dark:border-zinc-200/80",
+    badgeClass: "bg-orange-50 text-orange-850 border border-orange-200/50 dark:bg-orange-50 dark:text-orange-850",
+    buttonClass: "bg-orange-600 hover:bg-orange-700 text-white dark:bg-orange-600 dark:hover:bg-orange-700",
+    containerClass: "text-zinc-900 bg-zinc-50 dark:text-zinc-900 dark:bg-zinc-50"
   },
   education: {
-    bgGradient: "bg-gradient-to-tr from-blue-50/15 via-white to-indigo-50/10",
-    heroBg: "bg-gradient-to-br from-blue-50/30 via-indigo-50/20 to-white border-b border-blue-100/50",
-    cardBg: "bg-white/80 backdrop-blur-md",
-    borderClass: "border-blue-100 hover:border-blue-250 hover:shadow-xs",
-    badgeClass: "bg-blue-50 text-blue-800 border border-blue-200/50",
-    buttonClass: "bg-blue-600 hover:bg-blue-700 text-white shadow-blue-100",
-    containerClass: "text-zinc-950"
+    bgGradient: "bg-zinc-50 dark:bg-zinc-50",
+    heroBg: "bg-white border-b border-zinc-200/65 dark:bg-white dark:border-zinc-200/65",
+    cardBg: "bg-white dark:bg-white",
+    borderClass: "border-zinc-200/80 hover:border-blue-300 hover:shadow-xs dark:border-zinc-200/80",
+    badgeClass: "bg-blue-50 text-blue-800 border border-blue-200/50 dark:bg-blue-50 dark:text-blue-800",
+    buttonClass: "bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-600 dark:hover:bg-blue-700",
+    containerClass: "text-zinc-900 bg-zinc-50 dark:text-zinc-900 dark:bg-zinc-50"
   },
   hospitality: {
-    bgGradient: "bg-gradient-to-tr from-violet-50/15 via-white to-purple-50/10",
-    heroBg: "bg-gradient-to-br from-violet-50/30 via-purple-50/25 to-white border-b border-violet-100/50",
-    cardBg: "bg-white/80 backdrop-blur-md",
-    borderClass: "border-violet-100 hover:border-violet-250 hover:shadow-xs",
-    badgeClass: "bg-violet-50 text-violet-850 border border-violet-200/50",
-    buttonClass: "bg-violet-600 hover:bg-violet-700 text-white shadow-violet-100",
-    containerClass: "text-zinc-950"
+    bgGradient: "bg-zinc-50 dark:bg-zinc-50",
+    heroBg: "bg-white border-b border-zinc-200/65 dark:bg-white dark:border-zinc-200/65",
+    cardBg: "bg-white dark:bg-white",
+    borderClass: "border-zinc-200/80 hover:border-violet-300 hover:shadow-xs dark:border-zinc-200/80",
+    badgeClass: "bg-violet-50 text-violet-850 border border-violet-200/50 dark:bg-violet-50 dark:text-violet-850",
+    buttonClass: "bg-violet-600 hover:bg-violet-700 text-white dark:bg-violet-600 dark:hover:bg-violet-700",
+    containerClass: "text-zinc-900 bg-zinc-50 dark:text-zinc-900 dark:bg-zinc-50"
   },
   service: {
-    bgGradient: "bg-gradient-to-tr from-zinc-50 via-white to-zinc-100/30",
-    heroBg: "bg-zinc-50/40 border-b border-zinc-150",
-    cardBg: "bg-white",
-    borderClass: "border-zinc-200 hover:border-zinc-300 hover:shadow-xs",
-    badgeClass: "bg-zinc-100 text-zinc-800 border border-zinc-200/80",
-    buttonClass: "bg-zinc-900 hover:bg-zinc-850 text-white",
-    containerClass: "text-zinc-950"
+    bgGradient: "bg-zinc-50 dark:bg-zinc-50",
+    heroBg: "bg-white border-b border-zinc-200/65 dark:bg-white dark:border-zinc-200/65",
+    cardBg: "bg-white dark:bg-white",
+    borderClass: "border-zinc-200 hover:border-zinc-300 hover:shadow-xs dark:border-zinc-200",
+    badgeClass: "bg-zinc-100 text-zinc-800 border border-zinc-200/80 dark:bg-zinc-100 dark:text-zinc-800",
+    buttonClass: "bg-zinc-900 hover:bg-zinc-850 text-white dark:bg-zinc-900 dark:hover:bg-zinc-850",
+    containerClass: "text-zinc-900 bg-zinc-50 dark:text-zinc-900 dark:bg-zinc-50"
   }
 };
 
