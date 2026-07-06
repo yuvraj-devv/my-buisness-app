@@ -25,6 +25,7 @@ import {
   Store,
   LogOut,
   Sparkles,
+  Locate,
 } from "lucide-react";
 
 type Business = {
@@ -82,6 +83,67 @@ export default function ExplorePage() {
   const [filterByLocation, setFilterByLocation] = useState(true);
   const [newBizNotification, setNewBizNotification] = useState<string | null>(null);
 
+  async function fetchLiveLocation() {
+    if (typeof window !== "undefined" && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          try {
+            const res = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+            );
+            const data = await res.json();
+            const city =
+              data.address?.city ||
+              data.address?.town ||
+              data.address?.state_district ||
+              data.address?.village ||
+              data.address?.suburb ||
+              "";
+            if (city) {
+              setDetectedLocation(city);
+              const { data: { user } } = await supabaseClient.auth.getUser();
+              if (user) {
+                const existingPref = user.user_metadata?.preferences || {};
+                await supabaseClient.auth.updateUser({
+                  data: {
+                    preferences: {
+                      ...existingPref,
+                      region: city,
+                    },
+                  },
+                });
+              }
+              return;
+            }
+          } catch (e) {
+            console.error("OSM Geocoding failed", e);
+          }
+          fetchIpLocation();
+        },
+        (error) => {
+          console.warn("Browser geolocation permission denied or failed", error);
+          fetchIpLocation();
+        },
+        { enableHighAccuracy: true, timeout: 5000 }
+      );
+    } else {
+      fetchIpLocation();
+    }
+  }
+
+  async function fetchIpLocation() {
+    try {
+      const res = await fetch("https://ipapi.co/json/");
+      const ipData = await res.json();
+      if (ipData.city) {
+        setDetectedLocation(ipData.city);
+      }
+    } catch (e) {
+      console.error("IP Geocoding failed", e);
+    }
+  }
+
   useEffect(() => {
     async function load() {
       const { data } = await supabaseClient
@@ -92,18 +154,8 @@ export default function ExplorePage() {
       setBusinesses(data || []);
       setLoading(false);
 
-      // Detect location via free IP API for everyone as default
-      let detectedCity = "Hyderabad";
-      try {
-        const res = await fetch("https://ipapi.co/json/");
-        const ipData = await res.json();
-        if (ipData.city) {
-          detectedCity = ipData.city;
-          setDetectedLocation(ipData.city);
-        }
-      } catch (e) {
-        console.error("Geocoding failed", e);
-      }
+      // Fetch live geolocated coordinates/city
+      await fetchLiveLocation();
 
       // Load authenticated user & profile details
       const { data: { user: authUser } } = await supabaseClient.auth.getUser();
@@ -279,16 +331,26 @@ export default function ExplorePage() {
                   autoFocus
                 />
               ) : (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setTempLocation(detectedLocation);
-                    setIsEditingLocation(true);
-                  }}
-                  className="text-[11px] font-bold text-zinc-900 hover:underline border-0 bg-transparent cursor-pointer p-0"
-                >
-                  {detectedLocation || "Detecting..."}
-                </button>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTempLocation(detectedLocation);
+                      setIsEditingLocation(true);
+                    }}
+                    className="text-[11px] font-bold text-zinc-900 hover:underline border-0 bg-transparent cursor-pointer p-0"
+                  >
+                    {detectedLocation || "Detecting..."}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={fetchLiveLocation}
+                    className="p-0.5 hover:bg-zinc-200 rounded-full transition-colors cursor-pointer border-0 bg-transparent text-zinc-400 hover:text-zinc-700 flex items-center justify-center"
+                    title="Auto-detect current location"
+                  >
+                    <Locate className="w-3 h-3" />
+                  </button>
+                </div>
               )}
 
               <div className="h-3 w-px bg-zinc-250 mx-1" />
