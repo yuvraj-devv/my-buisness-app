@@ -98,6 +98,48 @@ const getTheme = (industry: string | null | undefined): ThemeConfig => {
   return themes.service;
 };
 
+function getServiceImage(name: string, category: string) {
+  const n = name.toLowerCase();
+  const cat = category.toLowerCase();
+
+  // Food / Restaurant
+  if (n.includes("burger") || cat.includes("burger")) {
+    return "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&auto=format&fit=crop&q=80";
+  }
+  if (n.includes("pizza") || cat.includes("pizza")) {
+    return "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&auto=format&fit=crop&q=80";
+  }
+  if (n.includes("sandwich") || cat.includes("sandwich")) {
+    return "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=400&auto=format&fit=crop&q=80";
+  }
+  if (n.includes("coffee") || n.includes("tea") || n.includes("cafe") || cat.includes("beverage") || n.includes("shake") || n.includes("drink")) {
+    return "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=400&auto=format&fit=crop&q=80";
+  }
+  if (n.includes("pasta") || cat.includes("pasta")) {
+    return "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=400&auto=format&fit=crop&q=80";
+  }
+  if (n.includes("fries") || cat.includes("fries") || n.includes("potato") || n.includes("tikki")) {
+    return "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400&auto=format&fit=crop&q=80";
+  }
+
+  // Healthcare / Medical
+  if (cat.includes("health") || cat.includes("medical") || n.includes("checkup") || n.includes("consult")) {
+    return "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&auto=format&fit=crop&q=80";
+  }
+
+  // Gym / Fitness
+  if (cat.includes("fitness") || cat.includes("gym") || n.includes("train") || n.includes("workout")) {
+    return "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=400&auto=format&fit=crop&q=80";
+  }
+
+  // Salon / Beauty
+  if (cat.includes("salon") || cat.includes("spa") || n.includes("hair") || n.includes("massage")) {
+    return "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=400&auto=format&fit=crop&q=80";
+  }
+
+  return "https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400&auto=format&fit=crop&q=80";
+}
+
 export default async function ConsumerStorefront({
   params,
 }: {
@@ -230,33 +272,43 @@ export default async function ConsumerStorefront({
                   <h3 className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
                     {category}
                   </h3>
-                  <div className="space-y-2.5">
-                    {items.map((service) => (
-                      <div
-                        key={service.id}
-                        className={`flex items-center justify-between p-4 rounded-2xl border ${theme.cardBg} ${theme.borderClass} transition-all duration-200 shadow-3xs`}
-                      >
-                        <div className="space-y-1">
-                          <h4 className="text-sm font-extrabold text-zinc-950">
-                            {service.name}
-                          </h4>
-                          {service.description && (
-                            <p className="text-xs text-zinc-500 max-w-md font-medium leading-normal">
-                              {service.description}
-                            </p>
-                          )}
-                          <div className="flex items-center gap-3 text-xs text-zinc-400 pt-0.5">
-                            <span className="flex items-center gap-1 font-semibold">
-                              <Clock className="w-3 h-3 text-zinc-500" />
-                              {service.duration_minutes} min
-                            </span>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {items.map((service) => {
+                      const serviceImg = getServiceImage(service.name, service.category || "");
+                      return (
+                        <div
+                          key={service.id}
+                          className={`flex items-start gap-4 p-4 rounded-2xl border ${theme.cardBg} ${theme.borderClass} transition-all duration-200 shadow-3xs`}
+                        >
+                          <img
+                            src={serviceImg}
+                            alt={service.name}
+                            className="w-20 h-20 rounded-xl object-cover border border-zinc-200/60 shadow-3xs flex-shrink-0"
+                          />
+                          <div className="flex-1 min-w-0 flex flex-col justify-between h-full">
+                            <div className="space-y-1">
+                              <h4 className="text-sm font-extrabold text-zinc-950 truncate">
+                                {service.name}
+                              </h4>
+                              {service.description && (
+                                <p className="text-xs text-zinc-500 font-medium leading-normal line-clamp-2">
+                                  {service.description}
+                                </p>
+                              )}
+                            </div>
+                            <div className="flex items-center justify-between pt-2">
+                              <span className="flex items-center gap-1 font-semibold text-xs text-zinc-400">
+                                <Clock className="w-3.5 h-3.5 text-zinc-500" />
+                                {service.duration_minutes} min
+                              </span>
+                              <span className={`text-xs font-black tracking-tight ${config.accentText} bg-zinc-50 border border-zinc-150 rounded-full px-2.5 py-0.5 shadow-3xs`}>
+                                ₹{service.price?.toFixed(2)}
+                              </span>
+                            </div>
                           </div>
                         </div>
-                        <span className={`text-sm font-black tracking-tight ${config.accentText} bg-white dark:bg-zinc-900 border border-zinc-150 dark:border-zinc-800 rounded-full px-3 py-1 shadow-2xs`}>
-                          ₹{service.price?.toFixed(2)}
-                        </span>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               ))
